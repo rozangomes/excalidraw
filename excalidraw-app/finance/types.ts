@@ -4,6 +4,7 @@ export interface Account {
   id: string;
   name: string;
   type: AccountType;
+  /** Initial balance at registration; current balance is derived from paid transactions. */
   balance: number;
   color: string;
   includeInTotal: boolean;

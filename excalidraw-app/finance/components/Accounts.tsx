@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFinance } from "../store";
-import { formatCurrency } from "../utils";
+import { formatCurrency, getAccountBalance } from "../utils";
 import type { Account } from "../types";
 import { AccountModal } from "./modals/AccountModal";
 
@@ -25,7 +25,7 @@ export function Accounts() {
 
   const totalBalance = state.accounts
     .filter((a) => a.includeInTotal)
-    .reduce((s, a) => s + a.balance, 0);
+    .reduce((s, a) => s + getAccountBalance(a, state.transactions), 0);
 
   const handleDelete = (id: string) => {
     if (window.confirm("Excluir esta conta?")) {
@@ -62,7 +62,9 @@ export function Accounts() {
             </button>
           </div>
         ) : (
-          state.accounts.map((acc) => (
+          state.accounts.map((acc) => {
+            const balance = getAccountBalance(acc, state.transactions);
+            return (
             <div key={acc.id} className="fin-account-card">
               <div
                 className="fin-account-icon"
@@ -80,8 +82,8 @@ export function Accounts() {
                 )}
               </div>
               <div>
-                <div className="fin-account-balance" style={{ color: acc.balance >= 0 ? "#1E293B" : "#EF4444" }}>
-                  {formatCurrency(acc.balance)}
+                <div className="fin-account-balance" style={{ color: balance >= 0 ? "#1E293B" : "#EF4444" }}>
+                  {formatCurrency(balance)}
                 </div>
                 <div style={{ display: "flex", gap: 6, marginTop: 8, justifyContent: "flex-end" }}>
                   <button
@@ -100,7 +102,8 @@ export function Accounts() {
                 </div>
               </div>
             </div>
-          ))
+            );
+          })
         )}
       </div>
 

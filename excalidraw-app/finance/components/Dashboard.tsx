@@ -1,5 +1,5 @@
 import { useFinance } from "../store";
-import { formatCurrency, formatDate, formatMonth, prevMonth, nextMonth, getMonthTransactions } from "../utils";
+import { formatCurrency, formatDate, formatMonth, prevMonth, nextMonth, getMonthTransactions, getAccountBalance } from "../utils";
 
 function DonutChart({ data }: { data: { color: string; value: number; label: string }[] }) {
   const total = data.reduce((s, d) => s + d.value, 0);
@@ -60,7 +60,9 @@ export function Dashboard() {
   const totalIncome = monthTxs.filter((t) => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const totalExpenses = monthTxs.filter((t) => t.type === "expense").reduce((s, t) => s + t.amount, 0);
   const balance = totalIncome - totalExpenses;
-  const totalAssets = accounts.filter((a) => a.includeInTotal).reduce((s, a) => s + a.balance, 0);
+  const totalAssets = accounts
+    .filter((a) => a.includeInTotal)
+    .reduce((s, a) => s + getAccountBalance(a, transactions), 0);
 
   const expenseByCategory = categories
     .filter((c) => c.type !== "income")
@@ -210,17 +212,20 @@ export function Dashboard() {
                 Ver
               </button>
             </div>
-            {accounts.filter((a) => a.includeInTotal).map((acc) => (
-              <div key={acc.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ width: 10, height: 10, borderRadius: "50%", background: acc.color }} />
-                  <span style={{ fontSize: 13, color: "#475569" }}>{acc.name}</span>
+            {accounts.filter((a) => a.includeInTotal).map((acc) => {
+              const balance = getAccountBalance(acc, transactions);
+              return (
+                <div key={acc.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "8px 0", borderBottom: "1px solid #F1F5F9" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <div style={{ width: 10, height: 10, borderRadius: "50%", background: acc.color }} />
+                    <span style={{ fontSize: 13, color: "#475569" }}>{acc.name}</span>
+                  </div>
+                  <span style={{ fontSize: 13, fontWeight: 600, color: balance >= 0 ? "#1E293B" : "#EF4444" }}>
+                    {formatCurrency(balance)}
+                  </span>
                 </div>
-                <span style={{ fontSize: 13, fontWeight: 600, color: acc.balance >= 0 ? "#1E293B" : "#EF4444" }}>
-                  {formatCurrency(acc.balance)}
-                </span>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>

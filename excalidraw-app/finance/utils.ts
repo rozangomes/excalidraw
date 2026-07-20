@@ -1,3 +1,5 @@
+import type { Account, Transaction } from "./types";
+
 export const formatCurrency = (value: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
     value,
@@ -35,8 +37,19 @@ export const generateId = (): string =>
   Math.random().toString(36).slice(2) + Date.now().toString(36);
 
 export const getMonthTransactions = (
-  transactions: import("./types").Transaction[],
+  transactions: Transaction[],
   month: string,
 ) => transactions.filter((t) => t.date.startsWith(month));
+
+// Current balance = initial balance +/- every *paid* transaction on the account.
+// Pending (unpaid) transactions don't move money yet, so they are excluded.
+export const getAccountBalance = (
+  account: Account,
+  transactions: Transaction[],
+): number =>
+  account.balance +
+  transactions
+    .filter((t) => t.accountId === account.id && t.paid)
+    .reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0);
 
 export const todayStr = (): string => new Date().toISOString().split("T")[0];
