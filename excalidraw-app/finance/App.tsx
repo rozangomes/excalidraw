@@ -7,6 +7,7 @@ import { CreditCards } from "./components/CreditCards";
 import { Transactions } from "./components/Transactions";
 import { Categories } from "./components/Categories";
 import { Reports } from "./components/Reports";
+import { BackupControls } from "./components/BackupControls";
 
 const VIEW_TITLES: Record<string, string> = {
   dashboard: "Dashboard",
@@ -40,6 +41,7 @@ function FinanceContent() {
           <h2>{VIEW_TITLES[state.currentView]}</h2>
           <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
             <span style={{ fontSize: 12, color: "#94A3B8" }}>Seus dados ficam salvos localmente</span>
+            <BackupControls />
             <a
               href="/"
               style={{ fontSize: 12, color: "#3B82F6", textDecoration: "none", padding: "6px 12px", border: "1px solid #DBEAFE", borderRadius: 6, background: "#EFF6FF" }}

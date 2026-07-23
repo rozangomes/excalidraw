@@ -12,8 +12,9 @@ import { currentMonthStr, generateId } from "./utils";
 const STORAGE_KEY = "organizze-finance-data";
 // Bump when the shape of AppState changes; loadState() rejects (and
 // resets to seed data) anything saved under a different version instead
-// of risking a mismatched shape crashing the app.
-const STORAGE_VERSION = 1;
+// of risking a mismatched shape crashing the app. Also used to tag
+// exported backup files, so a restore can be validated the same way.
+export const STORAGE_VERSION = 1;
 
 const defaultCategories: Category[] = [
   { id: "cat-1", name: "Salário", icon: "💰", color: "#10B981", type: "income" },
@@ -86,7 +87,7 @@ const seedState = (): AppState => ({
 // Structural check only (not per-item) — enough to catch a corrupted or
 // wildly mismatched blob without hand-validating every field of every
 // transaction.
-function isValidAppState(data: unknown): data is AppState {
+export function isValidAppState(data: unknown): data is AppState {
   if (!data || typeof data !== "object") return false;
   const d = data as Record<string, unknown>;
   return (
@@ -172,6 +173,8 @@ function reducer(state: AppState, action: Action): AppState {
       return { ...state, categories: state.categories.map((c) => c.id === action.payload.id ? action.payload : c) };
     case "DELETE_CATEGORY":
       return { ...state, categories: state.categories.filter((c) => c.id !== action.payload) };
+    case "RESTORE_STATE":
+      return action.payload;
     default:
       return state;
   }
@@ -183,6 +186,7 @@ interface ContextValue {
   state: AppState;
   dispatch: Dispatch<Action>;
   storageNotice: string | null;
+  setStorageNotice: (message: string | null) => void;
   dismissStorageNotice: () => void;
 }
 
@@ -213,7 +217,7 @@ export function FinanceProvider({ children }: { children: ReactNode }) {
 
   return createElement(
     FinanceContext.Provider,
-    { value: { state, dispatch, storageNotice, dismissStorageNotice } },
+    { value: { state, dispatch, storageNotice, setStorageNotice, dismissStorageNotice } },
     children,
   );
 }

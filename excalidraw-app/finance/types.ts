@@ -79,4 +79,5 @@ export type Action =
   | { type: "TOGGLE_PAID"; payload: string }
   | { type: "ADD_CATEGORY"; payload: Category }
   | { type: "UPDATE_CATEGORY"; payload: Category }
-  | { type: "DELETE_CATEGORY"; payload: string };
+  | { type: "DELETE_CATEGORY"; payload: string }
+  | { type: "RESTORE_STATE"; payload: AppState };
