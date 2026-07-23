@@ -7,7 +7,7 @@ import {
   type Dispatch,
 } from "react";
 import type { AppState, Action, Account, CreditCard, Transaction, Category } from "./types";
-import { currentMonthStr, generateId } from "./utils";
+import { currentMonthStr, generateId, prevMonth } from "./utils";
 
 const STORAGE_KEY = "organizze-finance-data";
 // Bump when the shape of AppState changes; loadState() rejects (and
@@ -43,11 +43,10 @@ const seedCards: CreditCard[] = [
   { id: "card-2", name: "Itaú Platinum", last4: "5678", limit: 8000_00, closingDay: 10, dueDay: 17, color: "#EC7000", currentBalance: 2340_00 },
 ];
 
-const today = new Date();
-const m = String(today.getMonth() + 1).padStart(2, "0");
-const y = today.getFullYear();
-const pm = String(today.getMonth()).padStart(2, "0") || "12";
-const py = today.getMonth() === 0 ? y - 1 : y;
+// prevMonth() handles the year rollover correctly (e.g. January -> December
+// of the previous year), unlike hand-rolled getMonth() arithmetic.
+const [y, m] = currentMonthStr().split("-");
+const [py, pm] = prevMonth(currentMonthStr()).split("-");
 
 const seedTransactions: Transaction[] = [
   { id: generateId(), type: "income", description: "Salário", amount: 6500_00, date: `${y}-${m}-05`, categoryId: "cat-1", accountId: "acc-1", paid: true },

@@ -62,4 +62,9 @@ export const getAccountBalance = (
     .filter((t) => t.accountId === account.id && t.paid)
     .reduce((s, t) => s + (t.type === "income" ? t.amount : -t.amount), 0);
 
-export const todayStr = (): string => new Date().toISOString().split("T")[0];
+// Local date, not UTC: toISOString() would roll over to "tomorrow" for
+// anyone west of UTC (e.g. Brazil, UTC-3) after ~21h local time.
+export const todayStr = (): string => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+};
