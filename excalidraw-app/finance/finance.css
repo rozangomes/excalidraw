@@ -156,6 +156,28 @@
   padding: 20px 24px;
 }
 
+.fin-storage-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 24px;
+  background: #FEF3C7;
+  color: #92400E;
+  font-size: 13px;
+  border-bottom: 1px solid #FDE68A;
+}
+
+.fin-storage-banner button {
+  background: none;
+  border: none;
+  color: #92400E;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  flex-shrink: 0;
+}
+
 /* Buttons */
 .fin-btn {
   display: inline-flex;

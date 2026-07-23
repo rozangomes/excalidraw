@@ -3,12 +3,17 @@ import {
   useContext,
   useReducer,
   useEffect,
+  useState,
   type Dispatch,
 } from "react";
 import type { AppState, Action, Account, CreditCard, Transaction, Category } from "./types";
 import { currentMonthStr, generateId } from "./utils";
 
 const STORAGE_KEY = "organizze-finance-data";
+// Bump when the shape of AppState changes; loadState() rejects (and
+// resets to seed data) anything saved under a different version instead
+// of risking a mismatched shape crashing the app.
+const STORAGE_VERSION = 1;
 
 const defaultCategories: Category[] = [
   { id: "cat-1", name: "Salário", icon: "💰", color: "#10B981", type: "income" },
@@ -69,24 +74,71 @@ const seedTransactions: Transaction[] = [
   { id: generateId(), type: "expense", description: "Restaurante", amount: 200_00, date: `${py}-${pm}-25`, categoryId: "cat-4", creditCardId: "card-1", paid: true },
 ];
 
-const createInitialState = (): AppState => {
+const seedState = (): AppState => ({
+  accounts: seedAccounts,
+  creditCards: seedCards,
+  transactions: seedTransactions,
+  categories: defaultCategories,
+  currentView: "dashboard",
+  currentMonth: currentMonthStr(),
+});
+
+// Structural check only (not per-item) — enough to catch a corrupted or
+// wildly mismatched blob without hand-validating every field of every
+// transaction.
+function isValidAppState(data: unknown): data is AppState {
+  if (!data || typeof data !== "object") return false;
+  const d = data as Record<string, unknown>;
+  return (
+    Array.isArray(d.accounts) &&
+    Array.isArray(d.creditCards) &&
+    Array.isArray(d.transactions) &&
+    Array.isArray(d.categories) &&
+    typeof d.currentView === "string" &&
+    typeof d.currentMonth === "string"
+  );
+}
+
+interface LoadResult {
+  state: AppState;
+  warning: string | null;
+}
+
+// Cached so the reducer's and the warning banner's lazy initializers
+// (two separate hooks) agree on a single read of localStorage per mount.
+let cachedLoad: LoadResult | null = null;
+
+function loadState(): LoadResult {
+  if (cachedLoad) return cachedLoad;
+
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      return JSON.parse(saved);
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) {
+      cachedLoad = { state: seedState(), warning: null };
+      return cachedLoad;
     }
+
+    const parsed = JSON.parse(raw);
+    if (parsed?.version !== STORAGE_VERSION || !isValidAppState(parsed?.data)) {
+      cachedLoad = {
+        state: seedState(),
+        warning:
+          "Não foi possível carregar seus dados salvos (formato desconhecido ou desatualizado). Os dados de exemplo foram restaurados para que o app continue funcionando.",
+      };
+      return cachedLoad;
+    }
+
+    cachedLoad = { state: parsed.data, warning: null };
+    return cachedLoad;
   } catch {
-    // ignore
+    cachedLoad = {
+      state: seedState(),
+      warning:
+        "Seus dados salvos estavam corrompidos e não puderam ser lidos. Os dados de exemplo foram restaurados para que o app continue funcionando.",
+    };
+    return cachedLoad;
   }
-  return {
-    accounts: seedAccounts,
-    creditCards: seedCards,
-    transactions: seedTransactions,
-    categories: defaultCategories,
-    currentView: "dashboard",
-    currentMonth: currentMonthStr(),
-  };
-};
+}
 
 function reducer(state: AppState, action: Action): AppState {
   switch (action.type) {
@@ -130,6 +182,8 @@ import { createElement, type ReactNode } from "react";
 interface ContextValue {
   state: AppState;
   dispatch: Dispatch<Action>;
+  storageNotice: string | null;
+  dismissStorageNotice: () => void;
 }
 
 export const FinanceContext = createContext<ContextValue>({} as ContextValue);
@@ -137,11 +191,29 @@ export const FinanceContext = createContext<ContextValue>({} as ContextValue);
 export const useFinance = () => useContext(FinanceContext);
 
 export function FinanceProvider({ children }: { children: ReactNode }) {
-  const [state, dispatch] = useReducer(reducer, undefined, createInitialState);
+  const [state, dispatch] = useReducer(reducer, undefined, () => loadState().state);
+  const [storageNotice, setStorageNotice] = useState<string | null>(
+    () => loadState().warning,
+  );
 
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ version: STORAGE_VERSION, data: state }),
+      );
+    } catch {
+      setStorageNotice(
+        "Não foi possível salvar suas últimas alterações (armazenamento local indisponível ou cheio). Faça um backup dos seus dados assim que possível.",
+      );
+    }
   }, [state]);
 
-  return createElement(FinanceContext.Provider, { value: { state, dispatch } }, children);
+  const dismissStorageNotice = () => setStorageNotice(null);
+
+  return createElement(
+    FinanceContext.Provider,
+    { value: { state, dispatch, storageNotice, dismissStorageNotice } },
+    children,
+  );
 }

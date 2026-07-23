@@ -18,7 +18,7 @@ const VIEW_TITLES: Record<string, string> = {
 };
 
 function FinanceContent() {
-  const { state } = useFinance();
+  const { state, storageNotice, dismissStorageNotice } = useFinance();
 
   const renderView = () => {
     switch (state.currentView) {
@@ -48,6 +48,12 @@ function FinanceContent() {
             </a>
           </div>
         </header>
+        {storageNotice && (
+          <div className="fin-storage-banner">
+            <span>⚠️ {storageNotice}</span>
+            <button onClick={dismissStorageNotice} aria-label="Fechar aviso">✕</button>
+          </div>
+        )}
         <div className="fin-content">
           {renderView()}
         </div>
