@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFinance } from "../../store";
-import { generateId, todayStr } from "../../utils";
+import { generateId, todayStr, parseAmountInput, centsToInputValue } from "../../utils";
 import type { Transaction, TransactionType } from "../../types";
 
 interface Props {
@@ -15,7 +15,9 @@ export function TransactionModal({ transaction, onClose, defaultType = "expense"
 
   const [type, setType] = useState<TransactionType>(transaction?.type ?? defaultType);
   const [description, setDescription] = useState(transaction?.description ?? "");
-  const [amount, setAmount] = useState(transaction?.amount?.toString() ?? "");
+  const [amount, setAmount] = useState(
+    transaction ? centsToInputValue(transaction.amount) : "",
+  );
   const [date, setDate] = useState(transaction?.date ?? todayStr());
   const [categoryId, setCategoryId] = useState(transaction?.categoryId ?? "");
   const [accountId, setAccountId] = useState(transaction?.accountId ?? "");
@@ -36,7 +38,7 @@ export function TransactionModal({ transaction, onClose, defaultType = "expense"
       id: transaction?.id ?? generateId(),
       type,
       description,
-      amount: parseFloat(amount),
+      amount: parseAmountInput(amount),
       date,
       categoryId,
       accountId: useCard ? undefined : accountId,

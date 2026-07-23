@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFinance } from "../../store";
-import { generateId } from "../../utils";
+import { generateId, parseAmountInput, centsToInputValue } from "../../utils";
 import type { CreditCard } from "../../types";
 
 const COLORS = ["#820AD1", "#EC7000", "#1E293B", "#3B82F6", "#EF4444", "#10B981", "#F59E0B", "#EC4899"];
@@ -14,7 +14,9 @@ export function CardModal({ card, onClose }: Props) {
   const { dispatch } = useFinance();
   const [name, setName] = useState(card?.name ?? "");
   const [last4, setLast4] = useState(card?.last4 ?? "");
-  const [limit, setLimit] = useState(card?.limit?.toString() ?? "");
+  const [limit, setLimit] = useState(
+    card ? centsToInputValue(card.limit) : "",
+  );
   const [closingDay, setClosingDay] = useState(card?.closingDay?.toString() ?? "");
   const [dueDay, setDueDay] = useState(card?.dueDay?.toString() ?? "");
   const [color, setColor] = useState(card?.color ?? COLORS[0]);
@@ -27,7 +29,7 @@ export function CardModal({ card, onClose }: Props) {
       id: card?.id ?? generateId(),
       name,
       last4: last4 || "0000",
-      limit: parseFloat(limit),
+      limit: parseAmountInput(limit),
       closingDay: parseInt(closingDay),
       dueDay: parseInt(dueDay),
       color,

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFinance } from "../store";
-import { formatCurrency, getMonthTransactions, generateId } from "../utils";
+import { formatCurrency, getMonthTransactions, generateId, parseAmountInput, centsToInputValue } from "../utils";
 import type { Category } from "../types";
 
 const COLORS = ["#10B981", "#6366F1", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#F97316", "#3B82F6", "#A78BFA", "#14B8A6", "#6B7280"];
@@ -12,7 +12,9 @@ function CategoryModal({ category, onClose }: { category?: Category; onClose: ()
   const [icon, setIcon] = useState(category?.icon ?? ICONS[0]);
   const [color, setColor] = useState(category?.color ?? COLORS[0]);
   const [type, setType] = useState<Category["type"]>(category?.type ?? "expense");
-  const [monthlyLimit, setMonthlyLimit] = useState(category?.monthlyLimit?.toString() ?? "");
+  const [monthlyLimit, setMonthlyLimit] = useState(
+    category?.monthlyLimit ? centsToInputValue(category.monthlyLimit) : "",
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +25,7 @@ function CategoryModal({ category, onClose }: { category?: Category; onClose: ()
       icon,
       color,
       type,
-      monthlyLimit: monthlyLimit ? parseFloat(monthlyLimit) : undefined,
+      monthlyLimit: monthlyLimit ? parseAmountInput(monthlyLimit) : undefined,
     };
     if (category) {
       dispatch({ type: "UPDATE_CATEGORY", payload: cat });

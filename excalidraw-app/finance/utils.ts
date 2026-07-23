@@ -1,9 +1,19 @@
 import type { Account, Transaction } from "./types";
 
-export const formatCurrency = (value: number): string =>
+// All monetary values in the app are integer centavos to avoid
+// floating-point drift; conversion to reais happens only at the UI edge.
+export const formatCurrency = (cents: number): string =>
   new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
-    value,
+    cents / 100,
   );
+
+/** "12.34" (reais, from an <input type=number>) -> 1234 centavos */
+export const parseAmountInput = (value: string): number =>
+  Math.round(parseFloat(value) * 100) || 0;
+
+/** 1234 centavos -> "12.34" for prefilling an <input type=number> */
+export const centsToInputValue = (cents: number): string =>
+  (cents / 100).toString();
 
 export const formatDate = (dateStr: string): string => {
   const [year, month, day] = dateStr.split("-");

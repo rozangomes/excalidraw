@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useFinance } from "../../store";
-import { generateId } from "../../utils";
+import { generateId, parseAmountInput, centsToInputValue } from "../../utils";
 import type { Account, AccountType } from "../../types";
 
 const COLORS = ["#3B82F6", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#EC4899", "#06B6D4", "#820AD1", "#EC7000", "#F97316"];
@@ -14,7 +14,9 @@ export function AccountModal({ account, onClose }: Props) {
   const { dispatch } = useFinance();
   const [name, setName] = useState(account?.name ?? "");
   const [type, setType] = useState<AccountType>(account?.type ?? "checking");
-  const [balance, setBalance] = useState(account?.balance?.toString() ?? "0");
+  const [balance, setBalance] = useState(
+    account ? centsToInputValue(account.balance) : "0",
+  );
   const [color, setColor] = useState(account?.color ?? COLORS[0]);
   const [includeInTotal, setIncludeInTotal] = useState(account?.includeInTotal ?? true);
 
@@ -26,7 +28,7 @@ export function AccountModal({ account, onClose }: Props) {
       id: account?.id ?? generateId(),
       name,
       type,
-      balance: parseFloat(balance) || 0,
+      balance: parseAmountInput(balance),
       color,
       includeInTotal,
     };
