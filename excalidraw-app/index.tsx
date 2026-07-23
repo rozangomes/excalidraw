@@ -12,12 +12,17 @@ const rootElement = document.getElementById("root")!;
 const root = createRoot(rootElement);
 registerSW();
 
-const isFinance =
-  window.location.pathname === "/finance" ||
-  new URLSearchParams(window.location.search).get("app") === "finance";
+// The finance app is the default experience on this domain; the
+// Excalidraw whiteboard is opt-in via /draw (kept for room/library links
+// and anyone who still wants the whiteboard).
+const params = new URLSearchParams(window.location.search);
+const isDraw =
+  window.location.pathname === "/draw" ||
+  params.get("app") === "draw" ||
+  params.get("app") === "excalidraw";
 
 root.render(
   <StrictMode>
-    {isFinance ? <FinanceApp /> : <ExcalidrawApp />}
+    {isDraw ? <ExcalidrawApp /> : <FinanceApp />}
   </StrictMode>,
 );

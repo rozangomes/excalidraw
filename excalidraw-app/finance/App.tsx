@@ -43,10 +43,10 @@ function FinanceContent() {
             <span style={{ fontSize: 12, color: "#94A3B8" }}>Seus dados ficam salvos localmente</span>
             <BackupControls />
             <a
-              href="/"
+              href="/draw"
               style={{ fontSize: 12, color: "#3B82F6", textDecoration: "none", padding: "6px 12px", border: "1px solid #DBEAFE", borderRadius: 6, background: "#EFF6FF" }}
             >
-              ← Voltar ao Excalidraw
+              🎨 Abrir whiteboard
             </a>
           </div>
         </header>
